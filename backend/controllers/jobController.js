@@ -1,8 +1,8 @@
 const Job = require('../models/Job');
+const asyncHandler = require('../middleware/asyncHandler');
 
-exports.getJobs = async (req, res) => {
-    try {
-        const { search, status, sort = 'desc' } = req.query;
+exports.getJobs = asyncHandler(async (req, res, next) => {
+    const { search, status, sort = 'desc' } = req.query;
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
 
@@ -22,16 +22,16 @@ exports.getJobs = async (req, res) => {
 
         const sortOrder = sort === 'asc' ? 1 : -1;
 
-        const jobs = await job.find(query)
+    const jobs = await Job.find(query)
             .sort({ applicationDate: sortOrder})
-            .limit(limit * 1)
+        .limit(limit)
             .skip((page - 1) * limit);
 
         const total = await Job.countDocuments(query);
 
         res.json({
             success: true,
-            const: jobs.length,
+            count: jobs.length,
             total,
             pagination: {
                 page,
@@ -40,18 +40,10 @@ exports.getJobs = async (req, res) => {
             },
             data: jobs
         });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error'
-        });
-    }
-};
+});
 
-exports.getJob = async (req, res) => {
-    try {
-        const job = await Job.findOne({
+exports.getJob = asyncHandler(async (req, res, next) => {
+    const job = await Job.findOne({
             _id: req.params.id,
             user: req.user.id
         });
@@ -67,71 +59,46 @@ exports.getJob = async (req, res) => {
             success: true,
             data: job
         });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            success: false,
-            message: "Server error"
-        });
-    }
-};
+});
 
-    exports.createJob = async (req, res) => {
-        try {
-            req.body.user = req.user.id;
-            const job = await Job.create(req.body);
+exports.createJob = asyncHandler(async (req, res, next) => {
+    req.body.user = req.user.id;
+    const job = await Job.create(req.body);
 
             res.status(201).json({
                 success: true,
                 message: 'Job application created successfully',
                 data: job
             });
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({
-                success: false,
-                message: 'Server error'
-            });
+});
+
+
+exports.updateJob = asyncHandler(async (req, res, next) => {
+    const job = await Job.findOneAndUpdate(
+        { _id: req.params.id, user: req.user.id },
+        req.body,
+        {
+            new: true,
+            runValidators: true
         }
-    };
-
-
-    exports.updateJob = async (req, res) => {
-        try {
-            let job = await Job.fondOne({
-                _id: req.params.id,
-                user: req.user.id
-            });
+    );
 
             if (!job) {
                 return res.status(404).json({
                     success: false,
-                    message: 'Job not found'
+                message: 'Job not found or user not authorized'
                 });
             }
-
-            job = await Job.findByIdAndUpdate(req.params.id, req.body, {
-                new: true,
-                runValidators: true
-            });
 
             res.json({
                 success: true,
-                messsage: 'Job application updated successfully',
+        message: 'Job application updated successfully',
                 data: job
             });
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({
-                success: false,
-                message: 'Server error'
-            });
-        }
-    };
+});
 
-    exports.deleteJob = async (req, res) => {
-        try {
-            const job = await Job.findOne({
+exports.deleteJob = asyncHandler(async (req, res, next) => {
+    const job = await Job.findOneAndDelete({
                 _id: req.params.id,
                 user: req.user.id
             });
@@ -139,21 +106,12 @@ exports.getJob = async (req, res) => {
             if (!job) {
                 return res.status(404).json({
                     success: false,
-                    message: 'Job not found'
+                message: 'Job not found or user not authorized'
                 });
             }
-
-            await Job.findByIdAndDelete(req.params.id);
 
             res.json({
                 success: true,
                 message: 'Job application deleted successfully'
             });
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({
-                success: false,
-                message: 'Server error'
-            });
-        }
-    };
+});

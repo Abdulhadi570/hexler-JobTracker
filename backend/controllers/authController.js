@@ -1,15 +1,14 @@
-const { useReducer } = require('react');
 const User = require('../models/User');
+const asyncHandler = require('../middleware/asyncHandler');
 
-exports.register = async (req, res) => {
-    try {
-        const { name, email, password } = req.body;
 
+exports.register = asyncHandler(async (req, res, next) => {
+    const { name, email, password } = req.body;
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({
                 success: false,
-                message: 'User already exists;'
+                message: 'User already exists'
             });
         }
 
@@ -25,27 +24,18 @@ exports.register = async (req, res) => {
         res.status(201).json({
             success: true,
             message: 'User registered successfully',
-        token,
-    user: {
-        id: user._id,
-        name: user.name,
-        email: useReducer.email,
-        profilePhoto: user.profilePhoto
-    }   
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                profilePhoto: user.profilePhoto
+            }
+        });
 });
-} catch (error) {
-    console.error(error);
-    res.status(500).json({
-        sucess: false,
-        message: 'Server error'
-    });
-}
-};
 
-exports.login = async (req, res) => {
-    try {
-        const { email, password } = req.body;
-
+exports.login = asyncHandler(async (req, res, next) => {
+    const { email, password } = req.body;
         if (!email || !password) {
             return res.status(400).json({
                 success: false,
@@ -57,7 +47,7 @@ exports.login = async (req, res) => {
 
         if (!user) {
             return res.status(401).json({
-                succces: false,
+                success: false,
                 message: 'Invalid credentials'
             });
         }
@@ -65,7 +55,7 @@ exports.login = async (req, res) => {
         const isMatch = await user.matchPassword(password);
 
         if (!isMatch) {
-            return res,status(401).json({
+            return res.status(401).json({
                 success: false,
                 message: 'Invalid credentials'
             });
@@ -84,20 +74,11 @@ exports.login = async (req, res) => {
                 profilePhoto: user.profilePhoto
             }
         });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error'
-        });
-    }
-};
+});
 
 
-exports.getMe = async (req, res) => {
-    try {
-        const user = await User.findById(req.user.id);
-
+exports.getMe = asyncHandler(async (req, res, next) => {
+    const user = await User.findById(req.user.id);
         res.json({
             success: true,
             user: {
@@ -107,12 +88,4 @@ exports.getMe = async (req, res) => {
                 profilePhoto: user.profilePhoto
             }
         });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error'
-        });
-    }
-
-};
+});

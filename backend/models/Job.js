@@ -1,14 +1,14 @@
 const mongoose = require('mongoose');
 
 const jobSchema = new mongoose.Schema({
-    positionTitle: {
+    position: {
         type: String,
         required: [true, 'Please provide a position title'],
         maxlength: 100
     },
-    companyName: {
+    company: {
         type: String,
-        required: [true, 'Please provide a comapny name'],
+        required: [true, 'Please provide a company name'],
         maxlength: 100
     },
     applicationDate: {
@@ -16,10 +16,10 @@ const jobSchema = new mongoose.Schema({
         required: [true, 'Please provide an application date'],
         default: Date.now
     },
-    jibLink: {
+    jobLink: {
         type: String,
         match: [
-            /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-z0-9()@:%_\+.~#?&//==]*)/,
+            /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/,
             'Please provide a valid URL'
         ]
     },
@@ -36,6 +36,10 @@ const jobSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
+    profilePhoto: {
+        type: String,
+        default: ''
+    },
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -45,7 +49,11 @@ const jobSchema = new mongoose.Schema({
     timestamps: true
 });
 
-jobSchema.index({ positionTitle: 'text', companyName: 'text' });
+// Text search index for position and company
+jobSchema.index({ position: 'text', company: 'text' });
+// Compound index for user queries
 jobSchema.index({ user: 1, createdAt: -1 });
+// Status index for filtering
+jobSchema.index({ user: 1, status: 1 });
 
 module.exports = mongoose.model('Job', jobSchema);
