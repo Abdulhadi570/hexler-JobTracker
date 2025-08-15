@@ -49,12 +49,9 @@ const jobSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Text search index for position and company
 jobSchema.index({ position: 'text', company: 'text' });
-// Compound index for user queries
 jobSchema.index({ user: 1, applicationDate: -1 });
 jobSchema.index({ user: 1, createdAt: -1 });
-// Status index for filtering
 jobSchema.index({ user: 1, status: 1 });
 
 module.exports = mongoose.model('Job', jobSchema);

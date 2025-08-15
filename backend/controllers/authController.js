@@ -67,7 +67,6 @@ exports.login = asyncHandler(async (req, res, next) => {
 
 
 exports.getMe = asyncHandler(async (req, res, next) => {
-    // req.user is populated by the 'protect' middleware
     const user = await User.findById(req.user.id); 
 
     if (!user) {
