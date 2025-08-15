@@ -5,6 +5,7 @@ const path = require('path');
 const helmet = require('helmet');
 const morgan = require('morgan');
 require('dotenv').config();
+const ErrorResponse = require('./utils/errorResponse.js');
 
 const app = express();
 
@@ -57,47 +58,46 @@ app.use('/api/jobs', require('./routes/jobRoutes'));
 
 // Global error handler
 app.use((err, req, res, next) => {
-    console.error(`❌ Error: ${err.stack}`);
+    let error = { ...err };
+    error.message = err.message;
+
+    // Log to console for the developer
+    console.error(err.stack);
     
+    // Mongoose bad ObjectId (CastError)
+    if (err.name === 'CastError') {
+        const message = `Resource not found with id of ${err.value}`;
+        error = new ErrorResponse(message, 404);
+    }
+
     // Mongoose validation error
     if (err.name === 'ValidationError') {
-        const errors = Object.values(err.errors).map(e => e.message);
-        return res.status(400).json({
-            success: false,
-            message: 'Validation Error',
-            errors
-        });
+        const message = Object.values(err.errors).map(e => e.message).join(', ');
+        error = new ErrorResponse(message, 400);
     }
     
     // Mongoose duplicate key error
     if (err.code === 11000) {
         const field = Object.keys(err.keyValue)[0];
-        return res.status(400).json({
-            success: false,
-            message: `${field} already exists`
-        });
+        const message = `Duplicate field value entered for ${field}`;
+        error = new ErrorResponse(message, 400);
     }
     
     // JWT errors
     if (err.name === 'JsonWebTokenError') {
-        return res.status(401).json({
-            success: false,
-            message: 'Invalid token'
-        });
+        const message = 'Not authorized, token failed';
+        error = new ErrorResponse(message, 401);
     }
     
     if (err.name === 'TokenExpiredError') {
-        return res.status(401).json({
-            success: false,
-            message: 'Token expired'
-        });
+        const message = 'Not authorized, token expired';
+        error = new ErrorResponse(message, 401);
     }
     
     // Default error
-    res.status(err.statusCode || 500).json({
+    res.status(error.statusCode || 500).json({
         success: false,
-        message: err.message || 'Internal Server Error',
-        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+        message: error.message || 'Internal Server Error'
     });
 });
 

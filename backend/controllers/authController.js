@@ -1,15 +1,13 @@
 const User = require('../models/User');
 const asyncHandler = require('../middleware/asyncHandler');
+const ErrorResponse = require('../utils/errorResponse.js');
 
 
 exports.register = asyncHandler(async (req, res, next) => {
     const { name, email, password } = req.body;
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return res.status(400).json({
-                success: false,
-                message: 'User already exists'
-            });
+            return next(new ErrorResponse('User already exists', 400));
         }
 
 
@@ -37,28 +35,19 @@ exports.register = asyncHandler(async (req, res, next) => {
 exports.login = asyncHandler(async (req, res, next) => {
     const { email, password } = req.body;
         if (!email || !password) {
-            return res.status(400).json({
-                success: false,
-                message: 'Please provide email and password'
-            });
+            return next(new ErrorResponse('Please provide email and password', 400));
         }
 
         const user = await User.findOne({ email }).select('+password');
 
         if (!user) {
-            return res.status(401).json({
-                success: false,
-                message: 'Invalid credentials'
-            });
+            return next(new ErrorResponse('Invalid credentials', 401));
         }
 
         const isMatch = await user.matchPassword(password);
 
         if (!isMatch) {
-            return res.status(401).json({
-                success: false,
-                message: 'Invalid credentials'
-            });
+            return next(new ErrorResponse('Invalid credentials', 401));
         }
 
         const token = user.getSignedJwtToken();
@@ -78,7 +67,12 @@ exports.login = asyncHandler(async (req, res, next) => {
 
 
 exports.getMe = asyncHandler(async (req, res, next) => {
-    const user = await User.findById(req.user.id);
+    // req.user is populated by the 'protect' middleware
+    const user = await User.findById(req.user.id); 
+
+    if (!user) {
+        return next(new ErrorResponse('User not found', 404));
+    }
         res.json({
             success: true,
             user: {

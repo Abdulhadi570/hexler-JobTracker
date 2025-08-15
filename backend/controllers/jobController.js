@@ -1,5 +1,6 @@
 const Job = require('../models/Job');
 const asyncHandler = require('../middleware/asyncHandler');
+const ErrorResponse = require('../utils/errorResponse');
 
 exports.getJobs = asyncHandler(async (req, res, next) => {
     const { search, status, sort = 'desc' } = req.query;
@@ -9,10 +10,7 @@ exports.getJobs = asyncHandler(async (req, res, next) => {
         let query = { user: req.user.id };
 
         if (search) {
-            query.$or = [
-                { positionTitle: { $regex: search, $options: 'i' } },
-                { companyName: { $regex: search, $options: 'i'} },
-            ];
+            query.$text = { $search: search };
         }
 
         if (status && status !== 'all') {
@@ -49,10 +47,7 @@ exports.getJob = asyncHandler(async (req, res, next) => {
         });
 
         if (!job) {
-            return res.status(404).json({
-                success: false,
-                message: 'Job not found'
-            });
+            return next(new ErrorResponse(`Job not found with id of ${req.params.id}`, 404));
         }
 
         res.json({
@@ -84,10 +79,7 @@ exports.updateJob = asyncHandler(async (req, res, next) => {
     );
 
             if (!job) {
-                return res.status(404).json({
-                    success: false,
-                message: 'Job not found or user not authorized'
-                });
+                return next(new ErrorResponse(`Job not found with id of ${req.params.id} or user not authorized`, 404));
             }
 
             res.json({
@@ -104,10 +96,7 @@ exports.deleteJob = asyncHandler(async (req, res, next) => {
             });
 
             if (!job) {
-                return res.status(404).json({
-                    success: false,
-                message: 'Job not found or user not authorized'
-                });
+                return next(new ErrorResponse(`Job not found with id of ${req.params.id} or user not authorized`, 404));
             }
 
             res.json({

@@ -11,7 +11,7 @@ uploadDirs.forEach(dir => {
 });
 
 const storage = multer.diskStorage({
-    destination: function (re, file, cb) {
+    destination: function (req, file, cb) {
         if (file.fieldname === 'profilePhoto') {
             cb(null, 'uploads/profiles/');
         } else if (file.fieldname === 'resume') {
@@ -20,13 +20,14 @@ const storage = multer.diskStorage({
     },
     filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
     }
 });
 
 const fileFilter = (req, file, cb) => {
-    if (file.filedname === 'profilePhoto') {
-        if (file.mimetypw.startsWith('image/')) {
-            cb(null, ture);
+    if (file.fieldname === 'profilePhoto') {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
         } else {
             cb(new Error('Profile photo must be an image file'), false);
         }
@@ -34,12 +35,12 @@ const fileFilter = (req, file, cb) => {
         const allowedMimes = [
             'application/pdf',
             'application/msword',
-            'application/vnd.openxmlformats-officedocuments.wordprocessingml.document'
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
         ];
         if (allowedMimes.includes(file.mimetype)) {
             cb(null, true);
         } else {
-            cb(new Error('Resume must be a PDF or DOC file'), false);
+            cb(new Error('Resume must be a PDF, DOC, or DOCX file'), false);
         }
     } else {
         cb(new Error('Invalid field name'), false);
@@ -48,17 +49,7 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({
     storage: storage,
-    limits: {
-        fileSize: function(req, file, cb) {
-            if (file.fieldname === 'profilePhoto')
-{
-    return 2 * 1024 * 1024;
-
-} else if (file.fieldname === 'resume') {
-    return 5 * 1024 * 1024;
-}
-        }
-    },
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit for all files
     fileFilter: fileFilter
 });
 
