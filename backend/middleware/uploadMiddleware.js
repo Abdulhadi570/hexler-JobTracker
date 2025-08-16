@@ -56,12 +56,23 @@ const upload = multer({
 exports.uploadProfile = upload.single('profilePhoto');
 exports.uploadResume = upload.single('resume');
 
+exports.uploadJobFiles = upload.fields([
+    { name: 'resume', maxCount: 1 },
+    { name: 'profilePhoto', maxCount: 1 }
+]);
+
 exports.handleUploadError = (error, req, res, next) => {
     if (error instanceof multer.MulterError) {
         if (error.code === 'LIMIT_FILE_SIZE') {
             return res.status(400).json({
                 success: false,
-                message: 'File too large'
+                message: 'File too large. Maximum size is 5MB.'
+            });
+        }
+        if (error.code === 'LIMIT_UNEXPECTED_FILE') {
+            return res.status(400).json({
+                success: false,
+                message: 'Unexpected field name for file upload.'
             });
         }
     }

@@ -4,10 +4,7 @@ import api from "../api";
 import { AuthContext } from "../context/AuthContext";
 
 export default function Login() {
-    const [formData, setFormData] = useState({
-        email: "",
-        password: ""
-    });
+    const [formData, setFormData] = useState({ email: "", password: "" });
     const [errors, setErrors] = useState({});
     const [successMessage, setSuccessMessage] = useState("");
     const [loading, setLoading] = useState(false);
@@ -17,21 +14,14 @@ export default function Login() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Redirect if already logged in
     useEffect(() => {
-        if (token) {
-            navigate("/dashboard");
-        }
+        if (token) navigate("/dashboard");
     }, [token, navigate]);
 
-    // Show success message from registration
     useEffect(() => {
-        if (location.state?.message) {
-            setSuccessMessage(location.state.message);
-        }
+        if (location.state?.message) setSuccessMessage(location.state.message);
     }, [location.state]);
 
-    // Load remembered email
     useEffect(() => {
         const rememberedEmail = localStorage.getItem("rememberedEmail");
         if (rememberedEmail) {
@@ -42,21 +32,10 @@ export default function Login() {
 
     const validateForm = () => {
         const newErrors = {};
-        
-        // Email validation
-        if (!formData.email) {
-            newErrors.email = "Email is required";
-        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = "Please enter a valid email address";
-        }
-        
-        // Password validation
-        if (!formData.password) {
-            newErrors.password = "Password is required";
-        } else if (formData.password.length < 6) {
-            newErrors.password = "Password must be at least 6 characters";
-        }
-        
+        if (!formData.email) newErrors.email = "Email is required";
+        else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Please enter a valid email address";
+        if (!formData.password) newErrors.password = "Password is required";
+        else if (formData.password.length < 6) newErrors.password = "Password must be at least 6 characters";
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -64,107 +43,114 @@ export default function Login() {
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-        
-        // Clear error when user starts typing
-        if (errors[name]) {
-            setErrors(prev => ({ ...prev, [name]: "" }));
-        }
+        if (errors[name]) setErrors(prev => ({ ...prev, [name]: "" }));
     };
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        
-        if (!validateForm()) {
-            return;
-        }
-
+        if (!validateForm()) return;
         setLoading(true);
         setErrors({});
-
         try {
-            const res = await api.post("/auth/login", {
-                email: formData.email,
-                password: formData.password
-            });
-            
+            const res = await api.post("/auth/login", { email: formData.email, password: formData.password });
             setToken(res.data.token);
-            
-            // Handle remember me
-            if (rememberMe) {
-                localStorage.setItem("rememberedEmail", formData.email);
-            } else {
-                localStorage.removeItem("rememberedEmail");
-            }
-            
+            if (rememberMe) localStorage.setItem("rememberedEmail", formData.email);
+            else localStorage.removeItem("rememberedEmail");
             navigate("/dashboard");
         } catch (err) {
-            const errorMessage = err.response?.data?.message || "Login failed. Please try again.";
-            setErrors({ general: errorMessage });
+            setErrors({ general: err.response?.data?.message || "Login failed. Please try again." });
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8">
-                <div className="text-center">
-                    <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Welcome back</h2>
-                    <p className="mt-2 text-sm text-gray-600">Sign in to your account</p>
+        <div style={{minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', padding: '20px'}}>
+            <div style={{maxWidth: '400px', width: '100%', background: 'white', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', padding: '32px'}}>
+                <div style={{textAlign: 'center', marginBottom: '24px'}}>
+                    <h2 style={{fontSize: '24px', fontWeight: 'bold', color: '#1f2937', marginBottom: '8px'}}>Welcome Back</h2>
+                    <p style={{fontSize: '14px', color: '#6b7280'}}>Sign in to track your dream job</p>
                 </div>
-                <form onSubmit={handleLogin} className="mt-8 bg-white py-8 px-6 shadow-xl rounded-xl border border-gray-100">
-                    {errors.general && <p className="text-center text-sm text-red-600 mb-4">{errors.general}</p>}
-                    {successMessage && <p className="text-center text-sm text-green-600 mb-4">{successMessage}</p>}
-                    <div className="space-y-6">
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                                Email Address
-                            </label>
-                            <input
-                                id="email"
-                                type="email"
-                                required
-                                name="email"
-                                placeholder="Enter your email"
-                                className={`appearance-none relative block w-full px-3 py-3 border placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm transition-colors ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
-                                value={formData.email}
-                                onChange={handleInputChange}
-                            />
-                            {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email}</p>}
+                
+                <form onSubmit={handleLogin}>
+                    {errors.general && (
+                        <div style={{marginBottom: '16px', padding: '12px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px'}}>
+                            <p style={{fontSize: '14px', color: '#b91c1c', margin: '0'}}>{errors.general}</p>
                         </div>
-                        <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                                Password
-                            </label>
+                    )}
+                    {successMessage && (
+                        <div style={{marginBottom: '16px', padding: '12px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px'}}>
+                            <p style={{fontSize: '14px', color: '#15803d', margin: '0'}}>{successMessage}</p>
+                        </div>
+                    )}
+                    
+                    <div style={{marginBottom: '16px'}}>
+                        <label style={{display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px'}}>Email</label>
+                        <input
+                            type="email"
+                            name="email"
+                            placeholder="Enter your email"
+                            style={{width: '100%', padding: '12px', border: errors.email ? '1px solid #ef4444' : '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'}}
+                            value={formData.email}
+                            onChange={handleInputChange}
+                        />
+                        {errors.email && <p style={{fontSize: '12px', color: '#ef4444', margin: '4px 0 0'}}>{errors.email}</p>}
+                    </div>
+                    
+                    <div style={{marginBottom: '16px'}}>
+                        <label style={{display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px'}}>Password</label>
+                        <div style={{position: 'relative'}}>
                             <input
-                                id="password"
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 name="password"
-                                required
                                 placeholder="Enter your password"
-                                className={`appearance-none relative block w-full px-3 py-3 border placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm transition-colors ${errors.password ? 'border-red-500' : 'border-gray-300'}`}
+                                style={{width: '100%', padding: '12px', paddingRight: '40px', border: errors.password ? '1px solid #ef4444' : '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'}}
                                 value={formData.password}
                                 onChange={handleInputChange}
                             />
-                            {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password}</p>}
-                        </div>
-                        <div>
                             <button
-                                type="submit"
-                                disabled={loading}
-                                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                style={{position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280'}}
                             >
-                                {loading ? "Signing in..." : "Sign In"}
+                                {showPassword ? 'hide' : 'show'}
                             </button>
                         </div>
-                        <div className="text-center">
-                            <p className="text-sm text-gray-600">
-                                Don't have an account?{' '}
-                                <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors">
-                                    Create one here
-                                </Link>
-                            </p>
-                        </div>
+                        {errors.password && <p style={{fontSize: '12px', color: '#ef4444', margin: '4px 0 0'}}>{errors.password}</p>}
+                    </div>
+                    
+                    <div style={{marginBottom: '20px'}}>
+                        <label style={{display: 'flex', alignItems: 'center', fontSize: '14px', color: '#374151'}}>
+                            <input
+                                type="checkbox"
+                                checked={rememberMe}
+                                onChange={(e) => setRememberMe(e.target.checked)}
+                                style={{marginRight: '8px'}}
+                            />
+                            Remember me
+                        </label>
+                    </div>
+                    
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        style={{width: '100%', padding: '12px', background: loading ? '#9ca3af' : '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '500', cursor: loading ? 'not-allowed' : 'pointer', marginBottom: '16px'}}
+                    >
+                        {loading ? 'Signing in...' : 'Sign In'}
+                    </button>
+                    
+                    <div style={{textAlign: 'center'}}>
+                        <p style={{fontSize: '14px', color: '#6b7280', marginBottom: '8px'}}>
+                            <Link to="/forgot-password" style={{color: '#3b82f6', textDecoration: 'none', fontWeight: '500'}}>
+                                Forgot your password?
+                            </Link>
+                        </p>
+                        <p style={{fontSize: '14px', color: '#6b7280'}}>
+                            Don't have an account?{' '}
+                            <Link to="/register" style={{color: '#3b82f6', textDecoration: 'none', fontWeight: '500'}}>
+                                Create one here
+                            </Link>
+                        </p>
                     </div>
                 </form>
             </div>

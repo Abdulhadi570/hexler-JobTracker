@@ -4,25 +4,44 @@ import api from "../api";
 
 export default function Register() {
     const [formData, setFormData] = useState({
+        name: "",
         email: "",
-        password: ""
+        password: "",
+        confirmPassword: ""
     });
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const navigate = useNavigate();
 
     const validateForm = () => {
         const newErrors = {};
+        
+        if (!formData.name) {
+            newErrors.name = "Name is required";
+        } else if (formData.name.length < 2) {
+            newErrors.name = "Name must be at least 2 characters";
+        }
+        
         if (!formData.email) {
             newErrors.email = "Email is required";
         } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
             newErrors.email = "Please enter a valid email address";
         }
+        
         if (!formData.password) {
             newErrors.password = "Password is required";
-        } else if (formData.password.length < 6) {
-            newErrors.password = "Password must be at least 6 characters";
+        } else if (formData.password.length < 8) {
+            newErrors.password = "Password must be at least 8 characters";
         }
+        
+        if (!formData.confirmPassword) {
+            newErrors.confirmPassword = "Please confirm your password";
+        } else if (formData.password !== formData.confirmPassword) {
+            newErrors.confirmPassword = "Passwords do not match";
+        }
+        
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -42,7 +61,8 @@ export default function Register() {
         setLoading(true);
         setErrors({});
         try {
-            await api.post("/auth/register", formData);
+            const { confirmPassword, ...registerData } = formData;
+            await api.post("/auth/register", registerData);
             navigate("/", { state: { message: "Registration successful! Please log in." } });
         } catch (err) {
             const errorMessage = err.response?.data?.message || "Registration failed. Please try again.";
@@ -53,64 +73,105 @@ export default function Register() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8">
-                <div className="text-center">
-                    <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Create your account</h2>
-                    <p className="mt-2 text-sm text-gray-600">Join us to track your job applications</p>
+        <div style={{minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', padding: '20px'}}>
+            <div style={{maxWidth: '400px', width: '100%', background: 'white', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', padding: '32px'}}>
+                <div style={{textAlign: 'center', marginBottom: '24px'}}>
+                    <h2 style={{fontSize: '24px', fontWeight: 'bold', color: '#1f2937', marginBottom: '8px'}}>Join Us Today</h2>
+                    <p style={{fontSize: '14px', color: '#6b7280'}}>Create your account to start tracking jobs</p>
                 </div>
-                <form onSubmit={handleRegister} className="mt-8 bg-white py-8 px-6 shadow-xl rounded-xl border border-gray-100">
-                    {errors.general && <p className="text-center text-sm text-red-600 mb-4">{errors.general}</p>}
-                    <div className="space-y-6">
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                                Email Address
-                            </label>
-                            <input
-                                id="email"
-                                type="email"
-                                name="email"
-                                required
-                                placeholder="Enter your email"
-                                className={`appearance-none relative block w-full px-3 py-3 border placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm transition-colors ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
-                                value={formData.email}
-                                onChange={handleInputChange}
-                            />
-                            {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email}</p>}
+
+                <form onSubmit={handleRegister}>
+                    {errors.general && (
+                        <div style={{marginBottom: '16px', padding: '12px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px'}}>
+                            <p style={{fontSize: '14px', color: '#b91c1c', margin: '0'}}>{errors.general}</p>
                         </div>
-                        <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                                Password
-                            </label>
+                    )}
+
+                    <div style={{marginBottom: '16px'}}>
+                        <label style={{display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px'}}>Full Name</label>
+                        <input
+                            type="text"
+                            name="name"
+                            placeholder="Enter your full name"
+                            style={{width: '100%', padding: '12px', border: errors.name ? '1px solid #ef4444' : '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'}}
+                            value={formData.name}
+                            onChange={handleInputChange}
+                        />
+                        {errors.name && <p style={{fontSize: '12px', color: '#ef4444', margin: '4px 0 0'}}>{errors.name}</p>}
+                    </div>
+
+                    <div style={{marginBottom: '16px'}}>
+                        <label style={{display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px'}}>Email Address</label>
+                        <input
+                            type="email"
+                            name="email"
+                            placeholder="Enter your email address"
+                            style={{width: '100%', padding: '12px', border: errors.email ? '1px solid #ef4444' : '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'}}
+                            value={formData.email}
+                            onChange={handleInputChange}
+                        />
+                        {errors.email && <p style={{fontSize: '12px', color: '#ef4444', margin: '4px 0 0'}}>{errors.email}</p>}
+                    </div>
+
+                    <div style={{marginBottom: '16px'}}>
+                        <label style={{display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px'}}>Password</label>
+                        <div style={{position: 'relative'}}>
                             <input
-                                id="password"
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 name="password"
-                                required
-                                placeholder="Enter your password"
-                                className={`appearance-none relative block w-full px-3 py-3 border placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm transition-colors ${errors.password ? 'border-red-500' : 'border-gray-300'}`}
+                                placeholder="Create a strong password"
+                                style={{width: '100%', padding: '12px', paddingRight: '40px', border: errors.password ? '1px solid #ef4444' : '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'}}
                                 value={formData.password}
                                 onChange={handleInputChange}
                             />
-                            {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password}</p>}
-                        </div>
-                        <div>
                             <button
-                                type="submit"
-                                disabled={loading}
-                                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                style={{position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280'}}
                             >
-                                {loading ? "Creating account..." : "Create Account"}
+                                {showPassword ? 'hide' : 'show'}
                             </button>
                         </div>
-                        <div className="text-center">
-                            <p className="text-sm text-gray-600">
-                                Already have an account?{' '}
-                                <Link to="/" className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors">
-                                    Sign in here
-                                </Link>
-                            </p>
+                        {errors.password && <p style={{fontSize: '12px', color: '#ef4444', margin: '4px 0 0'}}>{errors.password}</p>}
+                    </div>
+
+                    <div style={{marginBottom: '16px'}}>
+                        <label style={{display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px'}}>Confirm Password</label>
+                        <div style={{position: 'relative'}}>
+                            <input
+                                type={showConfirmPassword ? "text" : "password"}
+                                name="confirmPassword"
+                                placeholder="Confirm your password"
+                                style={{width: '100%', padding: '12px', paddingRight: '40px', border: errors.confirmPassword ? '1px solid #ef4444' : '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'}}
+                                value={formData.confirmPassword}
+                                onChange={handleInputChange}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                style={{position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280'}}
+                            >
+                                {showConfirmPassword ? 'hide' : 'show'}
+                            </button>
                         </div>
+                        {errors.confirmPassword && <p style={{fontSize: '12px', color: '#ef4444', margin: '4px 0 0'}}>{errors.confirmPassword}</p>}
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        style={{width: '100%', padding: '12px', background: loading ? '#9ca3af' : '#10b981', color: 'white', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '500', cursor: loading ? 'not-allowed' : 'pointer', marginBottom: '16px'}}
+                    >
+                        {loading ? 'Creating account...' : 'Create Account'}
+                    </button>
+
+                    <div style={{textAlign: 'center'}}>
+                        <p style={{fontSize: '14px', color: '#6b7280'}}>
+                            Already have an account?{' '}
+                            <Link to="/" style={{color: '#10b981', textDecoration: 'none', fontWeight: '500'}}>
+                                Sign in here
+                            </Link>
+                        </p>
                     </div>
                 </form>
             </div>

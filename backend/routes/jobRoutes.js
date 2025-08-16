@@ -7,6 +7,7 @@ const {
     deleteJob
 } = require('../controllers/jobController');
 const { protect } = require('../middleware/authMiddleware');
+const { uploadJobFiles, handleUploadError } = require('../middleware/uploadMiddleware');
 
 const router = express.Router();
 
@@ -14,11 +15,11 @@ router.use(protect);
 
 router.route('/')
     .get(getJobs)
-    .post(createJob);
+    .post(uploadJobFiles, handleUploadError, createJob);
 
 router.route('/:id')
     .get(getJob)
-    .put(updateJob)
+    .put(uploadJobFiles, handleUploadError, updateJob)
     .delete(deleteJob);
 
 module.exports = router;

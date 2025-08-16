@@ -27,7 +27,7 @@ export default function Dashboard() {
             const res = await api.get(`/jobs?${query}`, {
                 headers: { Authorization: `Bearer ${token}` } 
             });
-            setJobs(res.data);
+            setJobs(res.data.data || []);
         } catch (err) {
             console.error("Error fetching jobs:", err);
             setError("Failed to fetch jobs. Please try again later.");
@@ -39,8 +39,7 @@ export default function Dashboard() {
     useEffect(() => {
         const timer = setTimeout(() => {
             fetchJobs();
-        }, 300); // Debounce API calls
-
+        }, 300);
         return () => clearTimeout(timer);
     }, [fetchJobs]);
 
@@ -58,46 +57,101 @@ export default function Dashboard() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div style={{minHeight: '100vh', background: '#f8fafc', padding: '20px'}}>
             {/* Header */}
-            <div className="bg-white shadow-sm border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center py-6">
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900">Job Tracker Dashboard</h1>
-                            <p className="mt-1 text-sm text-gray-500">Manage your job applications</p>
-                        </div>
-                        <button
-                            onClick={logout}
-                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
-                        >
-                            Sign Out
-                        </button>
+            <div style={{background: 'white', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', marginBottom: '24px', padding: '24px'}}>
+                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                    <div>
+                        <h1 style={{fontSize: '28px', fontWeight: 'bold', color: '#1f2937', margin: '0 0 8px 0'}}>
+                            Job Tracker Dashboard
+                        </h1>
+                        <p style={{fontSize: '14px', color: '#6b7280', margin: '0'}}>Manage your job applications with ease</p>
                     </div>
+                    <button
+                        onClick={logout}
+                        style={{padding: '12px 24px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '500', cursor: 'pointer'}}
+                    >
+                        Sign Out
+                    </button>
                 </div>
             </div>
 
             {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Search and Add Job Section */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-                    <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="relative flex-1">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <div style={{maxWidth: '1200px', margin: '0 auto'}}>
+                {/* Stats Cards */}
+                <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px', marginBottom: '24px'}}>
+                    <div style={{background: 'white', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', padding: '20px'}}>
+                        <div style={{display: 'flex', alignItems: 'center'}}>
+                            <div style={{width: '40px', height: '40px', background: '#dbeafe', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '16px'}}>
+                                <svg style={{width: '20px', height: '20px', color: '#2563eb'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
                             </div>
-                            <input
-                                type="text"
-                                name="search"
-                                placeholder="Search by position, company..."
-                                className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors"
-                                value={params.search}
-                                onChange={(e) => setParams(p => ({ ...p, search: e.target.value }))}
-                            />
+                            <div>
+                                <p style={{fontSize: '14px', fontWeight: '500', color: '#6b7280', margin: '0 0 4px 0'}}>Total Applications</p>
+                                <p style={{fontSize: '24px', fontWeight: 'bold', color: '#1f2937', margin: '0'}}>{jobs.length}</p>
+                            </div>
                         </div>
-                        <select name="status" value={params.status} onChange={(e) => setParams(p => ({ ...p, status: e.target.value }))} className="block w-full py-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors">
+                    </div>
+                    
+                    <div style={{background: 'white', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', padding: '20px'}}>
+                        <div style={{display: 'flex', alignItems: 'center'}}>
+                            <div style={{width: '40px', height: '40px', background: '#fef3c7', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '16px'}}>
+                                <svg style={{width: '20px', height: '20px', color: '#d97706'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p style={{fontSize: '14px', fontWeight: '500', color: '#6b7280', margin: '0 0 4px 0'}}>Pending</p>
+                                <p style={{fontSize: '24px', fontWeight: 'bold', color: '#1f2937', margin: '0'}}>{jobs.filter(job => job.status === 'Applied').length}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style={{background: 'white', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', padding: '20px'}}>
+                        <div style={{display: 'flex', alignItems: 'center'}}>
+                            <div style={{width: '40px', height: '40px', background: '#dcfce7', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '16px'}}>
+                                <svg style={{width: '20px', height: '20px', color: '#16a34a'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p style={{fontSize: '14px', fontWeight: '500', color: '#6b7280', margin: '0 0 4px 0'}}>Interviews</p>
+                                <p style={{fontSize: '24px', fontWeight: 'bold', color: '#1f2937', margin: '0'}}>{jobs.filter(job => job.status === 'Interview').length}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style={{background: 'white', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', padding: '20px'}}>
+                        <div style={{display: 'flex', alignItems: 'center'}}>
+                            <div style={{width: '40px', height: '40px', background: '#f3e8ff', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '16px'}}>
+                                <svg style={{width: '20px', height: '20px', color: '#9333ea'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p style={{fontSize: '14px', fontWeight: '500', color: '#6b7280', margin: '0 0 4px 0'}}>Offers</p>
+                                <p style={{fontSize: '24px', fontWeight: 'bold', color: '#1f2937', margin: '0'}}>{jobs.filter(job => job.status === 'Offer').length}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Search and Filters */}
+                <div style={{background: 'white', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', padding: '24px', marginBottom: '24px'}}>
+                    <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '16px'}}>
+                        <input
+                            type="text"
+                            placeholder="Search by position, company..."
+                            style={{width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'}}
+                            value={params.search}
+                            onChange={(e) => setParams(p => ({ ...p, search: e.target.value }))}
+                        />
+                        <select 
+                            value={params.status} 
+                            onChange={(e) => setParams(p => ({ ...p, status: e.target.value }))} 
+                            style={{width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'}}
+                        >
                             <option value="all">All Statuses</option>
                             <option value="Applied">Applied</option>
                             <option value="Interview">Interview</option>
@@ -105,105 +159,97 @@ export default function Dashboard() {
                             <option value="Rejected">Rejected</option>
                             <option value="Accepted">Accepted</option>
                         </select>
-                        <select name="sort" value={params.sort} onChange={(e) => setParams(p => ({ ...p, sort: e.target.value }))} className="block w-full py-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors">
+                        <select 
+                            value={params.sort} 
+                            onChange={(e) => setParams(p => ({ ...p, sort: e.target.value }))} 
+                            style={{width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'}}
+                        >
                             <option value="desc">Sort by Date (Newest)</option>
                             <option value="asc">Sort by Date (Oldest)</option>
                         </select>
                     </div>
-                </div>
-                <div className="flex justify-end mb-8">
-                    <Link
-                        to="/jobs/new"
-                        className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
-                    >
-                        <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                        Add New Job
-                    </Link>
+                    <div style={{textAlign: 'right'}}>
+                        <Link
+                            to="/jobs/new"
+                            style={{display: 'inline-block', padding: '12px 24px', background: '#3b82f6', color: 'white', textDecoration: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '500'}}
+                        >
+                            Add New Job
+                        </Link>
+                    </div>
                 </div>
 
-                {error && <div className="text-center py-12 text-red-600 bg-red-50 rounded-lg"><p>{error}</p></div>}
+                {error && (
+                    <div style={{background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '16px', marginBottom: '24px'}}>
+                        <p style={{color: '#b91c1c', margin: '0', fontSize: '14px'}}>{error}</p>
+                    </div>
+                )}
 
                 {loading ? (
-                    <div className="text-center py-12">
-                        <p className="text-gray-500">Loading applications...</p>
+                    <div style={{background: 'white', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', padding: '48px', textAlign: 'center'}}>
+                        <p style={{fontSize: '16px', color: '#6b7280', margin: '0'}}>Loading your applications...</p>
                     </div>
                 ) : jobs.length === 0 ? (
-                    <div className="text-center py-12">
-                        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
-                        <h3 className="mt-2 text-sm font-medium text-gray-900">No job applications</h3>
-                        <p className="mt-1 text-sm text-gray-500">Get started by adding your first job application.</p>
-                        <div className="mt-6">
-                            <Link
-                                to="/jobs/new"
-                                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                            >
-                                Add Job Application
-                            </Link>
-                        </div>
+                    <div style={{background: 'white', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', padding: '48px', textAlign: 'center'}}>
+                        <h3 style={{fontSize: '20px', fontWeight: 'bold', color: '#1f2937', margin: '0 0 8px 0'}}>No job applications yet</h3>
+                        <p style={{fontSize: '14px', color: '#6b7280', margin: '0 0 24px 0'}}>Get started by adding your first job application and track your progress.</p>
+                        <Link
+                            to="/jobs/new"
+                            style={{display: 'inline-block', padding: '12px 24px', background: '#3b82f6', color: 'white', textDecoration: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '500'}}
+                        >
+                            Add Your First Job
+                        </Link>
                     </div>
                 ) : (
-                    <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Applied</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {jobs.map((job) => (
-                                        <tr key={job._id} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-gray-900">{job.position}</div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">{job.company}</div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">
-                                                    {new Date(job.applicationDate).toLocaleDateString()}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                                    job.status === 'Applied' ? 'bg-blue-100 text-blue-800' :
-                                                    job.status === 'Interview' ? 'bg-yellow-100 text-yellow-800' :
-                                                    job.status === 'Offer' ? 'bg-green-100 text-green-800' :
-                                                    job.status === 'Rejected' ? 'bg-red-100 text-red-800' :
-                                                    'bg-gray-100 text-gray-800'
-                                                }`}>
-                                                    {job.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <div className="flex justify-end space-x-2">
-                                                    <Link
-                                                        to={`/jobs/edit/${job._id}`}
-                                                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
-                                                    >
-                                                        Edit
-                                                    </Link>
-                                                    <button
-                                                        onClick={() => handleDelete(job._id)}
-                                                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                    <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px'}}>
+                        {jobs.map((job) => (
+                            <div key={job._id} style={{background: 'white', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', padding: '20px'}}>
+                                <div style={{marginBottom: '16px'}}>
+                                    <h3 style={{fontSize: '18px', fontWeight: 'bold', color: '#1f2937', margin: '0 0 4px 0'}}>
+                                        {job.position}
+                                    </h3>
+                                    <p style={{fontSize: '14px', color: '#6b7280', margin: '0'}}>{job.company}</p>
+                                </div>
+                                
+                                <div style={{marginBottom: '16px'}}>
+                                    <span style={{
+                                        display: 'inline-block',
+                                        padding: '4px 12px',
+                                        fontSize: '12px',
+                                        fontWeight: '500',
+                                        borderRadius: '16px',
+                                        background: job.status === 'Applied' ? '#dbeafe' : 
+                                                   job.status === 'Interview' ? '#fef3c7' :
+                                                   job.status === 'Offer' ? '#dcfce7' :
+                                                   job.status === 'Rejected' ? '#fee2e2' : '#f3f4f6',
+                                        color: job.status === 'Applied' ? '#1e40af' : 
+                                               job.status === 'Interview' ? '#92400e' :
+                                               job.status === 'Offer' ? '#166534' :
+                                               job.status === 'Rejected' ? '#dc2626' : '#374151'
+                                    }}>
+                                        {job.status}
+                                    </span>
+                                </div>
+                                
+                                <div style={{fontSize: '12px', color: '#6b7280', marginBottom: '16px'}}>
+                                    Applied {new Date(job.applicationDate).toLocaleDateString()}
+                                </div>
+                                
+                                <div style={{display: 'flex', gap: '8px'}}>
+                                    <Link
+                                        to={`/jobs/edit/${job._id}`}
+                                        style={{flex: '1', padding: '8px 16px', background: '#e0e7ff', color: '#3730a3', textDecoration: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: '500', textAlign: 'center'}}
+                                    >
+                                        Edit
+                                    </Link>
+                                    <button
+                                        onClick={() => handleDelete(job._id)}
+                                        style={{flex: '1', padding: '8px 16px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: '500', cursor: 'pointer'}}
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 )}
             </div>
