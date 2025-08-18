@@ -230,4 +230,4 @@ This project is licensed under the ISC License.
 
 ## Support
 
-For support, email your-email@example.com or create an issue on GitHub.
+For support, email hadi32344@gmail.com or create an issue on GitHub.
